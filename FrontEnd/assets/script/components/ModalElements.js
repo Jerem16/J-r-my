@@ -1,5 +1,5 @@
 // Display & management of modal buttons
-import { fetchDel } from "../functions/api.js";
+import { fetchDel, fetchJSON } from "../functions/api.js";
 import { alertElement, createElement } from "../functions/dom.js";
 import { deleteWork, gallery, modalReload, workArray } from "../script.js";
 import {
@@ -149,33 +149,6 @@ function deleteAllElements() {
 
 //************ */ Delete Elements *****************/
 
-// async function deleteWork(element) {
-//     const id = this.dataset.id;
-//     //
-
-//     // await gallery()
-//     fetchDel(id)
-//         .then(() => element.target.parentElement.remove())
-//         .then(() => del(element))
-//         .catch((e) => {
-//             console.log("err", e);
-//             if (e.status == "401") {
-//                 error();
-//             }
-//         });
-// }
-
-// function del(element) {
-//     let select_X = document.querySelectorAll("#modal-works-gallery");
-
-//     for (let i in select_X) {
-//         let select = document.querySelectorAll(".data_selected");
-//         let select_2 = document.querySelectorAll(".imgWork");
-//         select[i].remove();
-//         select_2[i].remove();
-//     }
-// }
-
 async function deleteAllWorks(i, workArray) {
     let id = workArray[i].id;
     await fetchDel(id).then((res) => {
@@ -270,102 +243,56 @@ function postWorkButton() {
     }
 }
 
-function uuidv4() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-        /[xy]/g,
-        function (c) {
-            var r = (Math.random() * 16) | 0,
-                v = c === "x" ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        }
-    );
-}
-
 // /**
 //  * @param {Event} e
 //  */
 async function addWork(e) {
     e.preventDefault();
 
-    const id1 = uuidv4();
-    console.log(id1);
-
-    let newMem = [];
-    newMem = {
-        imageUrl: memo.url,
-        title: title.value,
-        id: id1,
-    };
-
-    console.log("memo", newMem);
     const formData = new FormData();
     formData?.append("image", image?.files[0]);
     formData.append("title", title.value);
     formData.append("category", parseInt(new_cat.value, 10));
 
-    await fetch("http://localhost:5678/api/works", {
-        method: "POST",
-        headers: {
-            // "Content-Type": "multipart/form-data",
-            Authorization: "Bearer " + localStorage.user,
-        },
-        body: formData,
-    })
-        .then(() => modalReload())
-        .then(() => console.log("modalReload"))
-        .then(() => {
-            workForm.reset();
-            img_element.remove();
-        })
-        .then(() => resetModalPOST())
-        .catch((e) => {
-            if (e.status == "401") {
-                alertElement("session expirée, merci de vous reconnecter").then(
-                    () => (document.location.href = "login.html")
-                );
-            }
-            console.error(e);
+    console.log("1 formData =", formData.content);
+
+    try {
+        await fetch("http://localhost:5678/api/works", {
+            method: "POST",
+            headers: {
+                // "Content-Type": "multipart/form-data",
+                Authorization: "Bearer " + localStorage.user,
+            },
+            body: formData,
         });
+
+        await modalReload();
+        await fetchJSON("http://localhost:5678/api/works");
+
+        workForm.reset();
+        img_element.remove();
+        resetModalPOST();
+    } catch (e) {
+        if (e.status == "401") {
+            alertElement("session expirée, merci de vous reconnecter").then(
+                () => (document.location.href = "login.html")
+            );
+        }
+        console.error(e);
+    }
 
     const elements = document.querySelectorAll(".imgWork");
     const lastElement = elements[elements.length - 1];
-    lastElement.remove();
 
-    console.log(lastElement);
+    console.log(lastElement.dataset.id);
 
-    const figure_2 = createElement("figure", {
-        class: "imgWork",
-        "data-id": newMem.id,
-    });
-    modalPoint.append(figure_2);
+    const newMem = {
+        imageUrl: memo.url,
+        title: title.value,
+        id: lastElement.dataset.id,
+    };
 
-    figure_2.innerHTML = `
-            <img src=${newMem.imageUrl}
-            alt=${newMem.title}>
-
-            <img src="./assets/icons/trash_ico.svg" alt="delete" class="delete"
-            data-id=${newMem.id}>
-
-            <img src="./assets/icons/move.svg"" alt="delete" class="move">
-
-            <figcaption>éditer</figcaption>`;
     galleryElements(newMem);
-}
-
-function maxId(selector) {
-    let elements = document.querySelectorAll(selector);
-    const idValues = [];
-
-    elements.forEach((element) => {
-        const id = parseInt(element.dataset.id);
-        if (!isNaN(id)) {
-            idValues.push(id);
-        }
-    });
-
-    let maxId = Math.max(...idValues);
-
-    return maxId;
 }
 
 async function resetModalPOST() {

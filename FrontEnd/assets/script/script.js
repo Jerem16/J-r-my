@@ -5,7 +5,6 @@ import {
     refreshGallery,
 } from "./components/GalleryElements.js";
 import { layoutModal, modalGallery } from "./components/ModalElements.js";
-
 import { fetchJSON, fetchDel } from "./functions/api.js";
 
 const GetGallery = "http://localhost:5678/api/works";
@@ -14,59 +13,59 @@ const GetCategories = "http://localhost:5678/api/categories";
 let category = [];
 export let workArray = [];
 
-async function categories() {}
 export async function gallery() {
+    workArray = [];
+    await Promise.all([
+        fetchJSON(GetCategories).then((res) => (category = res)),
+        fetchJSON(GetGallery).then((res) => (workArray = res)),
+    ]);
+
     refreshGallery(".gallery");
-
-    await fetchJSON(GetCategories)
-        .then((res) => (category = res))
-        .then(() => createFilter(category));
-
-    await fetchJSON(GetGallery)
-        .then((res) => (workArray = res))
-        .then(() => createGallery(workArray))
-        .then(() => filterResult(workArray));
 
     console.log("works =", workArray);
 }
-export async function modalReload() {
-    await fetchJSON(GetGallery)
-        .then((res) => (workArray = res))
-        .then(() => modalGallery(workArray));
-}
 
 export async function deleteWork(element) {
-    const id = this.dataset.id;
-    //
+    const id = this?.dataset.id;
 
-    await fetchDel(id).then(() => element.target.parentElement.remove());
-    await fetchJSON(GetGallery)
-        .then((res) => (workArray = res))
-        .then(() => del(element))
-        .then(() => createGallery(workArray))
-        .catch((e) => {
-            console.log("err", e);
-            if (e.status == "401") {
-                error();
-            }
-        });
-}
+    console.log(this.element);
 
-function del(element) {
-    let select_X = document.querySelectorAll("#modal-works-gallery");
-
-    for (let i in select_X) {
-        let select = document.querySelectorAll(".data_selected");
-        let select_2 = document.querySelectorAll(".imgWork");
-        select[i].remove();
-        // select_2[i].remove();
+    try {
+        await fetchDel(id);
+        del(id, ".data_selected");
+        element.target.parentElement.remove();
+    } catch (e) {
+        if (e.status == "401") {
+            error();
+        }
     }
 }
 
-categories();
-gallery();
+function del(delId, selector) {
+    const elements = document.querySelectorAll(selector);
+    for (const element of elements) {
+        if (element.dataset.id == delId) {
+            element.remove();
+        }
+    }
+}
+
+export async function modalReload() {
+    workArray = await fetchJSON(GetGallery);
+    modalGallery(workArray);
+    // refreshGallery(".gallery");
+    // createGallery(workArray);
+}
+
+await gallery().then(() => show());
+
+async function show() {
+    await createFilter(category);
+    await createGallery(workArray);
+    await filterResult(workArray);
+}
+
 modalReload();
 
 // Display & management of modal buttons
-
 layoutModal();

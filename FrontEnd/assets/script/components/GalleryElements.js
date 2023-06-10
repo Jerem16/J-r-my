@@ -1,35 +1,49 @@
 import { createElement } from "../functions/dom.js";
 
+/**
+ * Crée une barre de filtre en fonction des catégories fournies.
+ * @param {Array} category - Le tableau des catégories.
+ * @returns {Array} - Le tableau des catégories modifié.
+ */
 export function createFilter(category) {
-    category = category.map((category) => category);
-
     const filterPoint = document.querySelector("#portfolio h2");
-
     const filterUl = createElement("ul", {
         class: "filterBar",
     });
     filterUl.innerHTML = `<li class="filter">Tous</li> `;
     filterPoint.append(filterUl);
 
-    for (let i in category) {
+    category.forEach((categoryItem) => {
         const filterLi = createElement("li", {
             class: "filter",
         });
-        filterLi.innerText = category[i].name;
+        filterLi.innerText = categoryItem.name;
         filterUl.append(filterLi);
-    }
-    // retire les filtres dans edit.html
+    });
+
+    // Retire les filtres dans edit.html
     if (window.location.pathname === "/edit.html") {
         filterUl.style.display = "none";
     }
+
     return category;
 }
+
 const gallery = document.querySelector(".gallery");
+
+/**
+ * Crée la galerie en ajoutant chaque élément de travail.
+ * @param {Array} works - Le tableau des travaux.
+ */
 export function createGallery(works) {
-    works?.forEach((work) => {
-        galleryElements(work);
-    });
+    works?.forEach(galleryElements);
 }
+
+/**
+ * Crée un élément de travail individuel dans la galerie.
+ * @param {Object} work - L'objet du travail.
+ * @returns {HTMLElement} - L'élément figure créé.
+ */
 export function galleryElements(work) {
     const figure = createElement("figure", {
         class: "data_selected",
@@ -37,43 +51,46 @@ export function galleryElements(work) {
     });
     gallery.append(figure);
     figure.innerHTML = `
-        <img src=${work.imageUrl} alt=${work.title}>
-        <img src="./assets/icons/trash_ico.svg" alt="delete" class="delete hidden" data-id=${work.id}>
-        <figcaption>${work.title}</figcaption>`;
+    <img src=${work.imageUrl} alt=${work.title}>
+    <img src="./assets/icons/trash_ico.svg" alt="delete" class="delete hidden" data-id=${work.id}>
+    <figcaption>${work.title}</figcaption>`;
     return figure;
 }
 
+/**
+ * Filtre les travaux en fonction de la catégorie sélectionnée.
+ * @param {Array} works - Le tableau des travaux.
+ * @returns {Array} - Le tableau des travaux filtré.
+ */
 export function filterResult(works) {
-    works = works.map((works) => works);
-
     const filterByCategory = document.querySelectorAll(".filter");
-    const gallery = document.querySelector(".gallery");
 
-    for (let i = 0; i < filterByCategory.length; i++) {
-        filterByCategory[i].addEventListener("click", function () {
+    filterByCategory.forEach((filter, i) => {
+        filter.addEventListener("click", function () {
             if (i !== 0) {
-                let filteredGallerry = works.filter(
+                const filteredGallery = works.filter(
                     (el) => el.categoryId === i
                 );
                 refreshGallery(".gallery");
-                createGallery(filteredGallerry);
+                createGallery(filteredGallery);
             } else {
                 refreshGallery(".gallery");
                 createGallery(works);
             }
         });
-    }
+    });
+
     return works;
 }
 
 /**
- * @param {String} selector
+ * Rafraîchit la galerie en effaçant son contenu.
+ * @param {string} selector - Le sélecteur CSS de la galerie.
  */
 export function refreshGallery(selector) {
     const gallery = document.querySelector(selector);
-    if (gallery === null) {
-        return;
-    } else {
+
+    if (gallery !== null) {
         gallery.innerHTML = "";
     }
 }

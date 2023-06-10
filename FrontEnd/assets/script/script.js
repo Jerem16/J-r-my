@@ -7,28 +7,37 @@ import {
 import { layoutModal, modalGallery } from "./components/ModalElements.js";
 import { fetchJSON, fetchDel } from "./functions/api.js";
 
+/** @type {string} */
 const GetGallery = "http://localhost:5678/api/works";
+/** @type {string} */
 const GetCategories = "http://localhost:5678/api/categories";
 
-let category = [];
+/** @type {Array} */
+export let category = [];
+/** @type {Array} */
 export let workArray = [];
 
+/**
+ * Récupère les catégories et les éléments de la galerie depuis les API, puis rafraîchit la galerie.
+ * @async
+ */
 export async function gallery() {
-    workArray = [];
-    await Promise.all([
-        fetchJSON(GetCategories).then((res) => (category = res)),
-        fetchJSON(GetGallery).then((res) => (workArray = res)),
+    [category, workArray] = await Promise.all([
+        fetchJSON(GetCategories),
+        fetchJSON(GetGallery),
     ]);
 
     refreshGallery(".gallery");
-
-    console.log("works =", workArray);
 }
 
+/**
+ * Supprime un élément de la galerie.
+ * @param {Event} element - L'élément déclencheur de l'événement.
+ * @async
+ */
 export async function deleteWork(element) {
+    /** @type {string} */
     const id = this?.dataset.id;
-
-    console.log(this.element);
 
     try {
         await fetchDel(id);
@@ -41,7 +50,13 @@ export async function deleteWork(element) {
     }
 }
 
+/**
+ * Supprime un élément de la galerie en fonction de son ID.
+ * @param {string} delId - L'ID de l'élément à supprimer.
+ * @param {string} selector - Le sélecteur CSS pour trouver les éléments à supprimer.
+ */
 function del(delId, selector) {
+    /** @type {NodeListOf<HTMLElement>} */
     const elements = document.querySelectorAll(selector);
     for (const element of elements) {
         if (element.dataset.id == delId) {
@@ -50,22 +65,26 @@ function del(delId, selector) {
     }
 }
 
+/**
+ * Recharge la galerie dans la fenêtre modale.
+ * @async
+ */
 export async function modalReload() {
     workArray = await fetchJSON(GetGallery);
     modalGallery(workArray);
-    // refreshGallery(".gallery");
-    // createGallery(workArray);
 }
 
-await gallery().then(() => show());
-
-async function show() {
-    await createFilter(category);
-    await createGallery(workArray);
-    await filterResult(workArray);
-}
-
-modalReload();
-
-// Display & management of modal buttons
+await gallery();
+await show();
 layoutModal();
+
+/**
+ * Affiche la galerie sur la page.
+ * @async
+ */
+async function show() {
+    createGallery(workArray);
+    createFilter(category);
+    filterResult(workArray);
+    modalReload();
+}

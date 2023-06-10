@@ -386,7 +386,8 @@ footer {
     left: 0;
     height: auto;
     background: white;
-    border: 1px solid white;
+    border: 1px solid transparent;
+    box-sizing: border-box;
 }
 
 footer nav ul {
@@ -560,10 +561,6 @@ li {
     background: rgba(0, 0, 0, 0.3);
     z-index: 100;
     transition: 2000ms;
-    -webkit-transition: 2000ms;
-    -moz-transition: 2000ms;
-    -ms-transition: 2000ms;
-    -o-transition: 2000ms;
 }
 
 .modal_wrapper {
@@ -686,18 +683,19 @@ hr {
 
 a.button {
     position: relative;
-    top: -2px;
-    margin: 0 0 0 0 auto;
+    top: 28px;
+    margin: auto;
     display: flex;
     justify-content: center;
     text-align: center;
     width: 237px;
     height: 36px;
+    /* border: 100px solid #000; */
 }
 
 .edit_delete-all {
     position: relative;
-    top: -2.5px;
+    top: 27.5px;
     text-align: center;
     display: block;
     margin-top: 23px;

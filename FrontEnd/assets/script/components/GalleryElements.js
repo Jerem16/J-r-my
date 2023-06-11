@@ -1,15 +1,18 @@
-import { createElement } from "../functions/dom.js";
+import {
+    createElement,
+    getElSelect,
+    getElSelectAll,
+} from "../functions/dom.js";
 
-/**
- * Crée une barre de filtre en fonction des catégories fournies.
- * @param {Array} category - Le tableau des catégories.
- * @returns {Array} - Le tableau des catégories modifié.
- */
+/** Crée et retourne une barre de filtres pour les catégories.
+ * @param {Array} category - La liste des catégories.
+ * @returns {Array} La liste des catégories. */
 export function createFilter(category) {
-    const filterPoint = document.querySelector("#portfolio h2");
+    const filterPoint = getElSelect("#portfolio h2");
     const filterUl = createElement("ul", {
         class: "filterBar",
     });
+
     filterUl.innerHTML = `<li class="filter">Tous</li> `;
     filterPoint.append(filterUl);
 
@@ -17,6 +20,7 @@ export function createFilter(category) {
         const filterLi = createElement("li", {
             class: "filter",
         });
+
         filterLi.innerText = categoryItem.name;
         filterUl.append(filterLi);
     });
@@ -29,21 +33,18 @@ export function createFilter(category) {
     return category;
 }
 
-const gallery = document.querySelector(".gallery");
+/**@type {HTMLElement} */
+const gallery = getElSelect(".gallery");
 
-/**
- * Crée la galerie en ajoutant chaque élément de travail.
- * @param {Array} works - Le tableau des travaux.
- */
+/**Crée la galerie en ajoutant chaque élément de travail.
+ * @param {Array} works - Le tableau des travaux.*/
 export function createGallery(works) {
     works?.forEach(galleryElements);
 }
 
-/**
- * Crée un élément de travail individuel dans la galerie.
+/**Crée un élément de travail individuel dans la galerie.
  * @param {Object} work - L'objet du travail.
- * @returns {HTMLElement} - L'élément figure créé.
- */
+ * @returns {HTMLElement} - L'élément figure créé.*/
 export function galleryElements(work) {
     const figure = createElement("figure", {
         class: "data_selected",
@@ -51,19 +52,17 @@ export function galleryElements(work) {
     });
     gallery.append(figure);
     figure.innerHTML = `
-    <img src=${work.imageUrl} alt=${work.title}>
-    <img src="./assets/icons/trash_ico.svg" alt="delete" class="delete hidden" data-id=${work.id}>
-    <figcaption>${work.title}</figcaption>`;
+      <img src=${work.imageUrl} alt=${work.title}>
+      <img src="./assets/icons/trash_ico.svg" alt="delete" class="delete hidden" data-id=${work.id}>
+      <figcaption>${work.title}</figcaption>`;
     return figure;
 }
 
-/**
- * Filtre les travaux en fonction de la catégorie sélectionnée.
+/**Filtre les travaux en fonction de la catégorie sélectionnée.
  * @param {Array} works - Le tableau des travaux.
- * @returns {Array} - Le tableau des travaux filtré.
- */
+ * @returns {Array} - Le tableau des travaux filtré.*/
 export function filterResult(works) {
-    const filterByCategory = document.querySelectorAll(".filter");
+    const filterByCategory = getElSelectAll(".filter");
 
     filterByCategory.forEach((filter, i) => {
         filter.addEventListener("click", function () {
@@ -83,12 +82,10 @@ export function filterResult(works) {
     return works;
 }
 
-/**
- * Rafraîchit la galerie en effaçant son contenu.
- * @param {string} selector - Le sélecteur CSS de la galerie.
- */
+/**Rafraîchit la galerie en effaçant son contenu.
+ * @param {string} selector - Le sélecteur CSS de la galerie.*/
 export function refreshGallery(selector) {
-    const gallery = document.querySelector(selector);
+    const gallery = getElSelect(selector);
 
     if (gallery !== null) {
         gallery.innerHTML = "";

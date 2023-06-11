@@ -1,73 +1,65 @@
-// Import des modules
+//Import des modules
 import { fetchDel, fetchJSON } from "../functions/api.js";
-import { alertElement, createElement } from "../functions/dom.js";
 import {
-    category,
-    deleteWork,
-    gallery,
-    modalReload,
-    workArray,
-} from "../script.js";
-import {
-    createGallery,
-    galleryElements,
-    refreshGallery,
-} from "./GalleryElements.js";
+    alertElement,
+    createElement,
+    getElByID,
+    getElSelect,
+    getElSelectAll,
+} from "../functions/dom.js";
+import { deleteWork, modalReload, workArray } from "../script.js";
+import { galleryElements, refreshGallery } from "./GalleryElements.js";
 
 /** @type {Number|[]|null} */
 let memo = null;
 /** @type {HTMLElement|null} */
 let modal = null;
-let modal_1 = document.getElementById("modal_1");
-let modal_2 = document.getElementById("modal_2");
-const modalPoint = document.getElementById("modal-works-gallery");
-
+const modal_1 = getElByID("modal_1");
+const modal_2 = getElByID("modal_2");
+const modalPoint = getElByID("modal-works-gallery");
 let templateModal_2 = null;
-let templateOpt = null;
-const options = document.querySelector("#opt > option");
 
-const workForm = document.querySelector("#work_form");
+/**Sélectionne le premier élément correspondant au sélecteur spécifié.
+ * @param {string} selector - Le sélecteur CSS pour la sélection de l'élément.
+ * @returns {Element|null} L'élément correspondant ou null s'il n'est pas trouvé. */
+const workForm = getElSelect("#work_form");
 workForm?.addEventListener("submit", addWork);
+const title = getElByID("title");
+const new_cat = getElByID("category");
+const img_element = document.createElement("img");
+const postButton = getElSelect(".modal_send-img");
 
-const title = document.getElementById("title");
-const new_cat = document.getElementById("category");
-const img_element = document.createElement("img"); // Document qui héberge l'image uploader de utilisateur
-const postButton = document.querySelector(".modal_send-img");
-
-/** @type {String||Number} */
+/** @type {RegExp} */
 const img_regex = /\.(jpg|jpeg|jfif|pjpeg|pjp|png)$/i;
 
-//** Templates **/
-/**Clone et affiche les templates
- */
 function cloneTemplate() {
     if (!templateModal_2) {
-        //(!templateModal_2) empêche la duplication de du template
-        templateModal_2 = document
-            .querySelector("#modal_2-layout")
-            ?.content.cloneNode(true);
+        templateModal_2 =
+            getElSelect("#modal_2-layout")?.content.cloneNode(true);
         workForm.prepend(templateModal_2);
-        
-        //(options) Créer les élément options
+
+        /** L'élément de sélection des catégories.
+         * @type {HTMLElement} */
         new_cat?.setAttribute("size", "");
         new_cat.innerHTML = `
-        <option value=""></option>
-        <option value="1">Object</option>
-        <option value="2">Appartements</option>
-        <option value="3">
-            Hotels & restaurants
-        </option>`;
+      <option value=""></option>
+      <option value="1">Object</option>
+      <option value="2">Appartements</option>
+      <option value="3">
+        Hotels & restaurants
+      </option>`;
     }
     postButtonLocked();
 }
 
-//** Modales **/
-/**
- * @param {EventListener} event- L'événement click
- */
+/** Ouvre la modal.
+ * @param {Event} event - L'événement de clic ou de soumission.*/
 export function openModal(event) {
     event.preventDefault();
-    const target = document.querySelector(event.target.getAttribute("href"));
+
+    /** La cible de la modal.
+     * @type {HTMLElement} */
+    const target = getElSelect(event.target.getAttribute("href"));
     target.style.display = null;
     target.removeAttribute("aria-hidden");
     target.setAttribute("aria-modal", true);
@@ -75,21 +67,25 @@ export function openModal(event) {
 
     if (modal_2.style.display === "" && modal_1.style.display === "") {
         modal_1.style.display = "none";
-        document
-            .querySelector(".js-modal_return")
-            .addEventListener("click", function () {
-                modal_1.style.display = null;
-            });
+        getElSelect(".js-modal_return").addEventListener("click", function () {
+            modal_1.style.display = null;
+        });
     }
+
     if (modal_2.style.display === "") {
         cloneTemplate();
         inputImg();
-        const templateModal_2 = document.querySelector("#modal_2-layout");
-        const templateLabel = document.querySelector(".modal_add-photo");
+
+        /** Le template de la modal 2.
+         * @type {HTMLElement} */
+        const templateModal_2 = getElSelect("#modal_2-layout");
+
+        /** Le label du template de la modal.
+         * @type {HTMLElement} */
+        const templateLabel = getElSelect(".modal_add-photo");
 
         if (!title.isEqualNode(workForm)) {
             templateModal_2?.remove();
-            // templateOpt?.remove();
         }
     }
 
@@ -97,35 +93,27 @@ export function openModal(event) {
     closeModal(modal);
 }
 
-/**
- * @param {EventListener} event
- * @param {HTMLElement} modal - L'élément modal à fermer
- */
+/** Ferme la modal.
+ * @param {HTMLElement} modal - L'élément de la modal à fermer. */
 export function closeModal(modal) {
-    document.querySelectorAll(".js-modal_close").forEach((element) => {
+    getElSelectAll(".js-modal_close").forEach((element) => {
         element.addEventListener("click", function (event) {
             removeModal(modal, event);
-            console.log("closeModal");
         });
     });
 }
 
-/**Retour modal (précédent)
- * @param {EventListener} event
- */
+/** Retourne à la modal précédente.*/
 export function returnModal() {
-    document
-        .querySelector(".js-modal_return")
-        .addEventListener("click", function (event) {
-            removeModal(modal, event);
-            console.log("returnModal");
-        });
+    getElSelect(".js-modal_return").addEventListener("click", function (event) {
+        removeModal(modal, event);
+        console.log("returnModal");
+    });
 }
 
-/** Fait disparaître la modal
- * @param {HTMLElement} target - L'élément modal à supprimer
- * @param {EventListener} event - L'événement click
- */
+/** Supprime la modal spécifiée.
+ * @param {HTMLElement} target - L'élément modal à supprimer.
+ * @param {Event} event - L'événement associé à la suppression de la modal. */
 export function removeModal(target, event) {
     event.preventDefault();
     if (target === null) return;
@@ -134,23 +122,28 @@ export function removeModal(target, event) {
     target.removeAttribute("aria-modal");
 }
 
-/** Initialise l'affichage de la modal
- * @param {Event} event - L'événement click
+/** écouteur d'événement "click" pour afficher modalGallery()
+ * @returns {Function}
  */
 export function layoutModal() {
-    document.querySelectorAll(".js-modal").forEach((element) => {
+    /** Ajoute un écouteur d'événement "click" à tous les éléments correspondant au sélecteur ".js-modal".
+     * Lorsque l'événement est déclenché, la fonction openModal est appelée.
+     * @param {String} selector - Le sélecteur CSS des éléments à sélectionner.
+     * @param {EventListener} element - L'élément auquel l'écouteur d'événement est attaché.
+     * @param {Function} openModal - La fonction à appeler lors du déclenchement de l'événement "click".*/
+    getElSelectAll(".js-modal").forEach((element) => {
         element.addEventListener("click", openModal);
     });
-    modalGallery();
+    return modalGallery();
 }
 
-//**? Affichage de la gallery dans la modales **/
-
-/**Définie l'affichage d'un élément (dans la galerie du modal)
- * @param {Work[]} [work] - élément[0] à afficher=> (workArray)
- * @type {HTMLElement}
- */
+/** Crée les éléments de la galerie modale à partir des données d'un travail.
+ * @param {Object} work - Les données du travail.*/
 function modalGalleryElements(work) {
+    /** Crée et retourne un élément avec les attributs spécifiés.
+     * @param {string} tagName - Le nom de la balise HTML de l'élément à créer, ici "figure".
+     * @param {Object} attributes - Les attributs de l'élément à créer sous forme d'un objet clé-valeur.
+     * @returns {HTMLElement} L'élément <figure> créé. */
     const figure_2 = createElement("figure", {
         class: "imgWork",
         "data-id": work.id,
@@ -181,10 +174,13 @@ function modalGalleryElements(work) {
     const figcaption = createElement("figcaption", {}, "éditer");
     figure_2.appendChild(figcaption);
 }
-/**Ajoute touts les éléments à afficher
- * @param {Work[]} [workArray]
- */
+
+/** Affiche la galerie des travaux dans la modale en utilisant les éléments spécifiés.
+ * @param {Array} works - Les travaux à afficher dans la galerie
+ * @returns {Function|EventListener} */
 export function modalGallery(works) {
+    /** Rafraîchit la galerie des travaux dans la modale en supprimant tous les éléments enfants de l'élément avec l'ID "#modal-works-gallery".
+     * @param {string} selector - Le sélecteur CSS de l'élément à rafraîchir.*/
     refreshGallery("#modal-works-gallery");
 
     if (modalPoint === null) return;
@@ -192,38 +188,42 @@ export function modalGallery(works) {
         modalGalleryElements(work);
     });
 
+    /**Supprime un élément du DOM ou tous.
+     * @type {EventListener}*/
     deleteElement();
     deleteAllElements();
 }
 
 //**! Affichage de la gallery dans la modales **/
 
-/** Supprime l'un des éléments des travaux au
- * @param {EventListener} event
- */
+/** Attache un écouteur d'événement "click" à tous les éléments correspondant au sélecteur CSS ".delete".
+ * Lorsque l'événement est déclenché, la fonction deleteWork est appelée.
+ * @param {string} selector - Le sélecteur CSS des éléments à sélectionner.
+ * @param {EventListener} element - L'élément auquel l'écouteur d'événement est attaché.
+ * @param {Function} deleteWork - La fonction à appeler lors du déclenchement de l'événement "click".*/
 function deleteElement() {
-    const deleteElements = document.querySelectorAll(".delete");
+    const deleteElements = getElSelectAll(".delete");
     deleteElements.forEach((element) => {
         element.addEventListener("click", deleteWork);
     });
 }
-/**"Supprime tout les travaux
- * @param {Event} event
- * @param {Work[]} [work] - Travaux à afficher (workArray)
- * @param {number} index - L'index de l'œuvre
- */
+/** Attache un écouteur d'événement "click" à l'élément correspondant au sélecteur CSS ".edit_delete-all".
+ * @param {string} selector - Le sélecteur CSS de l'élément à sélectionner.
+ * @param {EventListener} element - L'élément auquel l'écouteur d'événement est attaché.
+ * @param {Function} deleteAllWorks - La fonction à appeler lors du déclenchement de l'événement "click" pour supprimer tous les éléments */
 function deleteAllElements() {
-    const deleteAllElement = document.querySelector(".edit_delete-all");
-    deleteAllElement.addEventListener("click", function () {
+    const deleteAllElement = getElSelect(".edit_delete-all");
+    deleteAllElement.addEventListener("click", () => {
         workArray?.forEach((work, index) => {
             deleteAllWorks(index, workArray);
         });
     });
 }
-/** Supprime toutes les œuvres
- * @param {number} index - L'index de l'œuvre
- * @param {Work[]} workArray - Le tableau des œuvres
- */
+
+/** Supprime tous les éléments en parcourant le tableau workArray.
+ * @param {number} index - L'index de l'élément à supprimer.
+ * @param {Array} workArray - Le tableau d'éléments à supprimer.
+ * @returns {Promise<void>} Une promesse qui se résout lorsque la suppression est terminée. */
 async function deleteAllWorks(index, workArray) {
     const id = workArray[index].id;
     try {
@@ -236,12 +236,9 @@ async function deleteAllWorks(index, workArray) {
         }
     }
 }
-/** Affiche une erreur
- * @type {Error}
- * @param {Event} event
- */
+
 function error() {
-    const modal = document.querySelector(".modal_wrapper");
+    const modal = getElSelect(".modal_wrapper");
     modal.style.display = "none";
     const errorMessage = "Veuillez vous connecter pour continuer";
     const error = alertElement(errorMessage);
@@ -250,22 +247,24 @@ function error() {
     });
 }
 
-//**? Modal 2 ajouter ou supprimer des travaux **/
-
-//** Boutton (d'envoi) du formulaire **/
-/** Bloque le bouton d'envoi du formulaire
- */
+/** Désactive le bouton de publication.
+ * @returns {void} */
 function postButtonLocked() {
     postButton.disabled = true;
     postButton.style.background = "#A7A7A7";
     postButton.style.cursor = "not-allowed";
 }
-/**Vérifie les conditions pour activer le bouton d'envoi du formulaire
- * @param {EventListener} event
- */
+
+/** Active ou désactive le bouton de publication en fonction de la saisie de l'utilisateur.
+ * @returns {void} */
 function postWorkButton() {
+    /** @type {FileList} */
     const files = image.files;
+
+    /** @type {string} */
     const titleValue = title.value;
+
+    /** @type {string} */
     const newCatValue = new_cat.value;
 
     if (files.length > 0 && titleValue !== "" && newCatValue !== "") {
@@ -282,23 +281,24 @@ function postWorkButton() {
     }
 }
 
-//********/ Form Elements modal_2 *****************//
-
-// Création d'un input de type "file" (téléchargement d'image)
-
 /** @type {HTMLInputElement} */
 let image;
-/** Crée un élément input de type "file" pour l'image */
+/** Crée et retourne un nouvel élément d'entrée de type "file" pour l'image.
+ * @returns {HTMLInputElement} L'élément d'entrée de type "file" créé. */
 function createImageElement() {
+    /** @type {HTMLInputElement} */
     image = document.createElement("input");
     image.id = "image";
     image.name = "image";
     image.type = "file";
     image.style.display = "none";
 }
-/** Définie l'ajout de l'élément input de type "file"*/
+
+/** Gère l'ajout de l'élément d'entrée pour l'image.
+ * @returns {void} */
 function inputImg() {
-    const add_img = document.querySelector(".add_img");
+    /** @type {HTMLElement} */
+    const add_img = getElSelect(".add_img");
 
     if (!image) {
         createImageElement();
@@ -306,13 +306,17 @@ function inputImg() {
 
     add_img?.append(image);
 
+    /** Ajoute un écouteur d'événement "change" à l'élément d'entrée de fichier pour prévisualiser le fichier sélectionné.
+     * @param {Event} event - L'événement "change" déclenché lorsque le fichier est sélectionné.
+     * @returns {void} */
     image.addEventListener("change", previewFile);
 }
 
-/**Affiche le fichier image sélectionné par l'utilisateur dans la modal.
- * @param {Event} e - L'événement change
- */
+/** Gère la sélection et l'affichage de l'image choisie.
+ * @param {Event} e - L'événement de changement de fichier.
+ * @returns {void} */
 function previewFile(e) {
+    /** @type {FileList} */
     const files = this.files;
 
     if (files?.length === 0 || !img_regex.test(files[0]?.name)) {
@@ -320,33 +324,37 @@ function previewFile(e) {
         return;
     }
 
+    /** @type {File} */
     const file = files[0];
+    /** @type {string} */
     const url = URL?.createObjectURL(file);
     const imgUrl = `http://localhost:5678/images/${file.name}`;
 
+    /** @type {Object} */
     memo = {
         url: imgUrl,
     };
     console.log("file =", imgUrl, "url =", url);
 
+    /** @type {HTMLImageElement} */
     const img_element = document.createElement("img");
     img_element.src = url;
     img_element.classList.add("done");
 
-    const labelFile = document.querySelector(".modal_add-photo");
+    /** @type {HTMLElement} */
+    const labelFile = getElSelect(".modal_add-photo");
     labelFile.innerHTML = "";
     labelFile.appendChild(img_element);
 
     postWorkButton();
 }
-
-/** Ajoute une nouvelle œuvre via une requête POST
- * @param {Event} e - L'événement submit
- * @returns {Promise<void>}
- */
+/** Ajoute un nouveau travail en utilisant les données du formulaire.
+ * @param {Event} e - L'événement de soumission du formulaire.
+ * @returns {Promise<void>} Une promesse qui se résout lorsque le travail est ajouté. */
 async function addWork(e) {
     e.preventDefault();
 
+    /** @type {FormData} */
     const formData = new FormData();
     formData.append("image", image?.files[0]);
     formData.append("title", title.value);
@@ -355,33 +363,40 @@ async function addWork(e) {
     console.log("1 formData =", formData.content);
 
     try {
+        /** @type {Response} */
         await fetch("http://localhost:5678/api/works", {
             method: "POST",
             headers: {
                 Authorization: "Bearer " + localStorage.user,
             },
             body: formData,
+        }).then((res) => {
+            if (!res.ok) {
+                /** @type {HTMLElement} */
+                const errorMessage = alertElement(
+                    "Session expirée, merci de vous reconnecter"
+                );
+                errorMessage.addEventListener("close", () => {
+                    document.location.href = "login.html";
+                });
+            }
         });
 
         await modalReload();
-        await fetchJSON("http://localhost:5678/api/works");
 
         workForm.reset();
         resetModalPOST();
     } catch (e) {
-        if (e.status == "401") {
-            alertElement("Session expirée, merci de vous reconnecter").then(
-                () => (document.location.href = "login.html")
-            );
-        }
         console.error(e);
     }
 
-    const elements = document.querySelectorAll(".imgWork");
+    /** @type {NodeListOf<HTMLElement>} */
+    const elements = getElSelectAll(".imgWork");
     const lastElement = elements[elements.length - 1];
 
     console.log(lastElement.dataset.id);
 
+    /** @type {Object} */
     const newMem = {
         imageUrl: memo.url,
         title: title.value,
@@ -391,9 +406,11 @@ async function addWork(e) {
     galleryElements(newMem);
 }
 
-/**Reset le formulaire, l'input "file",  et le boutton d(envoi du formulaire,*/
+/** Réinitialise le formulaire et l'affichage de l'élément imput file et image.
+ * @returns {void} */
 function resetModalPOST() {
-    const labelFile = document.querySelector(".modal_add-photo");
+    /** @type {HTMLElement} */
+    const labelFile = getElSelect(".modal_add-photo");
     postButtonLocked();
     labelFile.innerHTML = `
     <img src="assets/icons/sendBoxImg.svg" alt="sendBoxImg"/>
